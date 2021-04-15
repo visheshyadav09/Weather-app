@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.6.2/css/bulma.css" />
+</head>
+
+<body>
+    <section class="hero is-primary">
+        <div class="hero-body">
+            <div class="container">
+                <h1 class="title">
+                    What's the weather like?
+                </h1>
+            </div>
+        </div>
+    </section>
+    <section class="section">
+        <div class="container">
+            <div class="columns">
+                <div class="column is-offset-4 is-4">
+                    <form method="POST" class="weather_form" data-url="{% url 'home' %}">
+                        {% csrf_token %}
+                        <div class="field has-addons">
+                            {% for field in form %}
+                            <div class="control is-expanded">
+                                {{field}}
+                            </div>
+                            {% endfor %}
+                            <div class="control">
+                                <button type="button" class="button is-info" id="add_city_button">
+                                    Add City
+                                </button>
+                            </div>
+                        </div>
+                        
+                    </form>
+
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="section">
+        <div class="container">
+            <div class="columns">
+                <div class="column is-offset-4 is-4" id="weather_report">
+                    {% for city_weather in weather_data %}
+                    <div class="box">
+                        <article class="media">
+                            <div class="media-left">
+                                <figure class="image is-50x50">
+                                    <img src="http://openweathermap.org/img/w/{{ city_weather.icon }}.png" alt="Image">
+                                </figure>
+                            </div>
+                            <div class="media-content">
+                                <div class="content">
+                                    <p>
+                                        <span class="title">{{ city_weather.city }}</span>
+                                        <br>
+                                        <span class="subtitle">{{ city_weather.temperature }}° F</span>
+                                        <br> {{ city_weather.description }}
+                                    </p>
+                                </div>
+                            </div>
+                            
+                        </article>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </section>
+    <footer class="footer">
+    </footer>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<script>
+  $(document).ready(function(){
+
+      $('#add_city_button').click(function(){
+          var serializedData=$('.weather_form').serialize();
+          
+          $.ajax({
+              url:$('.weather_form').data('url'),
+              data:serializedData,
+              type:'POST',
+              
+              success:function(response){
+
+              
+
+                if (response.weather_report.city_count==0){
+                    $('#weather_report').append('<div class="box"><article class="media"><div class="media-left"><figure class="image is-50x50"><img src="http://openweathermap.org/img/w/'+ response.weather_report.icon +'.png" alt="Image"></figure></div><div class="media-content"><div class="content"><p><span class="title">'+ response.weather_report.city +'</span><br><span class="subtitle">'+ response.weather_report.temperature +'° F</span><br> '+response.weather_report.description +'</p></div></div></article> </div>')
+                }
+                else{
+                    alert('City already Exists')
+                }
+
+               },
+              error:function(response){
+                  console.log
+              }
+          })
+      })
+      // using jQuery
+function getCookie(name) {
+    var cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = jQuery.trim(cookies[i]);
+            // Does this cookie string begin with the name we want?
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue =   decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+var csrftoken = getCookie('csrftoken');
+function csrfSafeMethod(method) {
+    // these HTTP methods do not require CSRF protection
+    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+}
+$.ajaxSetup({
+    beforeSend: function(xhr, settings) {
+        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+        }
+    }
+});
+  })
+
+</script>
+</body>
+
+</html>
